@@ -21,6 +21,7 @@ class VisionEngineProtocol(Protocol):
         path: str | Path,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
     ) -> ChartModel:
         """Screenshot → ChartModel (validation, extraction, quality)."""
         ...

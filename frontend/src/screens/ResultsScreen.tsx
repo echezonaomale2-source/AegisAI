@@ -44,6 +44,9 @@ function estimatePips(entry: string, tp: string): string {
 
 export function ResultsScreen({ navigation, route }: Props) {
   const { tradeId, analysis } = route.params;
+  const htf = analysis.timeframes?.HTF || analysis.timeframes?.['4H'] || '4H';
+  const mtf = analysis.timeframes?.MTF || analysis.timeframes?.['1H'] || '1H';
+  const ltf = analysis.timeframes?.LTF || analysis.timeframes?.['15M'] || '15M';
   const biasColor =
     analysis.bias === 'BUY'
       ? colors.success
@@ -73,21 +76,21 @@ export function ResultsScreen({ navigation, route }: Props) {
         <Text style={styles.sectionTitle}>Multi-Timeframe</Text>
         <View style={styles.tfRow}>
           <TfCard
-            tf="4H"
+            tf={htf}
             label={analysis.analysis4h.trend.toUpperCase()}
             color={trendTone(analysis.analysis4h.trend)}
             confidence={Math.max(50, analysis.confidence - 2)}
             onPress={() => navigation.navigate('TradeDetails', { tradeId })}
           />
           <TfCard
-            tf="1H"
+            tf={mtf}
             label={analysis.analysis1h.trend.toUpperCase()}
             color={trendTone(analysis.analysis1h.trend)}
             confidence={Math.max(50, analysis.confidence - 1)}
             onPress={() => navigation.navigate('TradeDetails', { tradeId })}
           />
           <TfCard
-            tf="15M"
+            tf={ltf}
             label={analysis.bias === 'NO TRADE' ? 'NO SETUP' : `${analysis.bias} SETUP`}
             color={biasColor}
             confidence={analysis.confidence}

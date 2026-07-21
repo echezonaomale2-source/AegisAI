@@ -81,12 +81,13 @@ def _bearish_15m_confirmation(m15: ChartAnalysis) -> bool:
 
 
 def _resolve_pair(h4: ChartAnalysis, h1: ChartAnalysis, m15: ChartAnalysis, fallback: str) -> str:
+    """Prefer the user-selected pair; never invent from screenshots."""
+    clean = (fallback or "").strip().upper().replace("/", "").replace(" ", "").replace("-", "")
+    if clean and clean not in {"UNKNOWN", "UNK"}:
+        return clean
     for chart in (h4, h1, m15):
         if chart.pair and chart.pair != "Unknown":
             return chart.pair
-    clean = (fallback or "").strip().upper()
-    if clean and clean != "UNKNOWN":
-        return clean
     return "Unknown"
 
 

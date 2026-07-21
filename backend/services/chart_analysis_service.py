@@ -24,10 +24,13 @@ class ChartAnalysisService:
         self,
         image_path: str | Path,
         expected_timeframe: str | None = None,
+        *,
+        pair: str | None = None,
     ) -> ChartAnalysis:
         model = self.reconstructor.reconstruct(
             image_path,
             expected_timeframe=expected_timeframe,
+            pair=pair,
         )
         return chart_model_to_chart_analysis(model)
 
@@ -35,9 +38,12 @@ class ChartAnalysisService:
         self,
         image_path: str | Path,
         expected_timeframe: str | None = None,
+        *,
+        pair: str | None = None,
     ):
         """Return full Phase 5 vision graph (no trade recommendation)."""
         return self.reconstructor._vision.analyze_chart(  # noqa: SLF001
             image_path,
             expected_timeframe=expected_timeframe,
+            pair=pair,
         )

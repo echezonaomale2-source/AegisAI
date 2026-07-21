@@ -20,7 +20,7 @@ class RiskEngine:
     """
     Builds a risk plan from 15M geometry, refined by HTF liquidity targets.
 
-    Prices are chart-relative (vision 0–100 scale) when axis OCR is unavailable.
+    Prices are chart-relative (vision 0–100 scale) when absolute axis ticks are unavailable.
     """
 
     def build(

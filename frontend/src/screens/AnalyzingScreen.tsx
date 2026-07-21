@@ -15,7 +15,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Analyzing'>;
 const STAGE_INTERVAL_MS = 900;
 
 export function AnalyzingScreen({ navigation, route }: Props) {
-  const { chart4hUri, chart1hUri, chart15mUri, pair } = route.params;
+  const {
+    chart4hUri,
+    chart1hUri,
+    chart15mUri,
+    pair,
+    timeframeHtf = '4H',
+    timeframeMtf = '1H',
+    timeframeLtf = '15M',
+  } = route.params;
   const [stageIndex, setStageIndex] = useState(0);
   const startedRef = useRef(false);
 
@@ -37,6 +45,9 @@ export function AnalyzingScreen({ navigation, route }: Props) {
       try {
         const analysis = await analyzeCharts({
           pair,
+          timeframeHtf,
+          timeframeMtf,
+          timeframeLtf,
           chart4hUri,
           chart1hUri,
           chart15mUri,
@@ -89,7 +100,16 @@ export function AnalyzingScreen({ navigation, route }: Props) {
     };
 
     void run();
-  }, [chart15mUri, chart1hUri, chart4hUri, navigation, pair]);
+  }, [
+    chart15mUri,
+    chart1hUri,
+    chart4hUri,
+    navigation,
+    pair,
+    timeframeHtf,
+    timeframeLtf,
+    timeframeMtf,
+  ]);
 
   return (
     <ScreenContainer>

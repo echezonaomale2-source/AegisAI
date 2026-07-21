@@ -70,6 +70,9 @@ class AnalysisResult(CamelModel):
     pair: str
     bias: TradeBias
     confidence: float = Field(ge=0, le=100)
+    timeframes: dict[str, str] = Field(
+        default_factory=lambda: {"HTF": "4H", "MTF": "1H", "LTF": "15M"}
+    )
     analysis4h: TimeframeAnalysis4H
     analysis1h: TimeframeAnalysis1H
     analysis15m: TimeframeAnalysis15M

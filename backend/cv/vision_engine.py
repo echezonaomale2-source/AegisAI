@@ -35,12 +35,13 @@ class VisionEngine:
         image_path: str | Path,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
         use_cache: bool | None = None,
     ) -> VisionChartResult:
         path = str(image_path)
         caching = self.cache if (self.cache if use_cache is None else use_cache) else None
         if caching:
-            cached = caching.get(path, expected_timeframe)
+            cached = caching.get(path, expected_timeframe, pair=pair)
             if cached is not None:
                 return cached
 
@@ -60,6 +61,7 @@ class VisionEngine:
             validation.enhanced,
             validation.gray if validation.gray is not None else validation.enhanced[:, :, 0],
             expected_timeframe=expected_timeframe,
+            pair=pair,
         )
         candles = self.candle_extractor.extract(extraction.chart_bgr)
         if len(candles) < 5:
@@ -97,7 +99,7 @@ class VisionEngine:
             cache_hit=False,
         )
         if caching:
-            caching.put(path, result, expected_timeframe)
+            caching.put(path, result, expected_timeframe, pair=pair)
         return result
 
     def analyze_multi(
@@ -105,10 +107,21 @@ class VisionEngine:
         chart_4h: str | Path,
         chart_1h: str | Path,
         chart_15m: str | Path,
+        *,
+        pair: str | None = None,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
     ) -> VisionMultiResult:
-        r4 = self.analyze_chart(chart_4h, expected_timeframe="4H")
-        r1 = self.analyze_chart(chart_1h, expected_timeframe="1H")
-        r15 = self.analyze_chart(chart_15m, expected_timeframe="15M")
+        r4 = self.analyze_chart(
+            chart_4h, expected_timeframe=timeframe_htf, pair=pair
+        )
+        r1 = self.analyze_chart(
+            chart_1h, expected_timeframe=timeframe_mtf, pair=pair
+        )
+        r15 = self.analyze_chart(
+            chart_15m, expected_timeframe=timeframe_ltf, pair=pair
+        )
         relationship = self.mtf.compare(r4, r1, r15)
 
         statuses = [r4.status, r1.status, r15.status]

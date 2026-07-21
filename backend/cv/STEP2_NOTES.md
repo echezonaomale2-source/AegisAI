@@ -13,7 +13,7 @@ Existing CV pipeline is preserved. This step closes concrete detector gaps.
 
 ## Still chart-relative
 
-Absolute price axis OCR is not invented. When ticks are unavailable, the system returns **Unknown** for absolute prices and keeps chart-relative coordinates — matching project rules.
+Absolute price axis ticks are not invented. When ticks are unavailable, the system returns **Unknown** for absolute prices and keeps chart-relative coordinates — matching project rules.
 
 ## Tests
 

@@ -105,6 +105,9 @@ class AnalysisService:
         chart_4h: Path,
         chart_1h: Path,
         chart_15m: Path,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
         persist: bool = True,
     ) -> AnalysisResult:
         decision = self.decide(
@@ -112,6 +115,9 @@ class AnalysisService:
             chart_4h=chart_4h,
             chart_1h=chart_1h,
             chart_15m=chart_15m,
+            timeframe_htf=timeframe_htf,
+            timeframe_mtf=timeframe_mtf,
+            timeframe_ltf=timeframe_ltf,
             persist=persist,
         )
         return self.to_analysis_result(decision)
@@ -123,6 +129,9 @@ class AnalysisService:
         chart_4h: Path,
         chart_1h: Path,
         chart_15m: Path,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
         persist: bool = True,
     ) -> TradeDecision:
         from core.analysis_jobs import AnalysisJobStore
@@ -141,6 +150,9 @@ class AnalysisService:
                 chart_4h=chart_4h,
                 chart_1h=chart_1h,
                 chart_15m=chart_15m,
+                timeframe_htf=timeframe_htf,
+                timeframe_mtf=timeframe_mtf,
+                timeframe_ltf=timeframe_ltf,
                 persist=persist,
             )
             jobs.mark_done(
@@ -164,10 +176,15 @@ class AnalysisService:
         if decision.trade_id:
             reasons.append(f"Trade ID: {decision.trade_id}")
 
+        htf = decision.timeframes.get("HTF") or decision.timeframes.get("4H") or "4H"
+        mtf = decision.timeframes.get("MTF") or decision.timeframes.get("1H") or "1H"
+        ltf = decision.timeframes.get("LTF") or decision.timeframes.get("15M") or "15M"
+
         return AnalysisResult(
             pair=decision.pair,
             bias=decision.overall_bias,
             confidence=decision.confidence,
+            timeframes={"HTF": htf, "MTF": mtf, "LTF": ltf},
             analysis4h={
                 "trend": _map_trend(a4.trend),
                 "marketStructure": _map_structure(a4),
@@ -176,14 +193,14 @@ class AnalysisService:
                 "fvg": _map_fvg(a4),
                 "premiumDiscount": _map_premium(a4),
                 "supplyDemand": _map_supply_demand(a4),
-                "summary": _summary("4H", a4),
+                "summary": _summary(htf, a4),
             },
             analysis1h={
                 "trend": _map_trend(a1.trend),
                 "liquidity": _map_liquidity(a1),
                 "orderBlock": _map_order_block(a1),
                 "fvg": _map_fvg(a1),
-                "summary": _summary("1H", a1),
+                "summary": _summary(mtf, a1),
             },
             analysis15m={
                 "entry": decision.entry,

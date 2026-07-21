@@ -67,6 +67,12 @@ export interface AnalysisResult {
   pair: string;
   bias: TradeBias;
   confidence: number;
+  timeframes?: {
+    HTF?: string;
+    MTF?: string;
+    LTF?: string;
+    [key: string]: string | undefined;
+  };
   analysis4h: TimeframeAnalysis4H;
   analysis1h: TimeframeAnalysis1H;
   analysis15m: TimeframeAnalysis15M;

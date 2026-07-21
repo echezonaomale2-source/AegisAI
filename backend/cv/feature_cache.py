@@ -24,20 +24,33 @@ class FeatureCache:
         self.root.mkdir(parents=True, exist_ok=True)
         self.max_files = max_files
 
-    def _key_for(self, image_path: str, expected_timeframe: str | None) -> str:
+    def _key_for(
+        self,
+        image_path: str,
+        expected_timeframe: str | None,
+        *,
+        pair: str | None = None,
+    ) -> str:
         path = Path(image_path)
         digest = hashlib.sha1()
         digest.update(path.name.encode("utf-8"))
         digest.update(str(path.stat().st_mtime_ns).encode("utf-8"))
         digest.update(str(path.stat().st_size).encode("utf-8"))
         digest.update((expected_timeframe or "").encode("utf-8"))
+        digest.update((pair or "").encode("utf-8"))
         # Content hash for correctness when timestamps collide.
         with path.open("rb") as handle:
             digest.update(handle.read())
         return digest.hexdigest()
 
-    def get(self, image_path: str, expected_timeframe: str | None = None) -> VisionChartResult | None:
-        key = self._key_for(image_path, expected_timeframe)
+    def get(
+        self,
+        image_path: str,
+        expected_timeframe: str | None = None,
+        *,
+        pair: str | None = None,
+    ) -> VisionChartResult | None:
+        key = self._key_for(image_path, expected_timeframe, pair=pair)
         cache_path = self.root / f"{key}.json"
         if not cache_path.exists():
             return None
@@ -56,8 +69,10 @@ class FeatureCache:
         image_path: str,
         result: VisionChartResult,
         expected_timeframe: str | None = None,
+        *,
+        pair: str | None = None,
     ) -> None:
-        key = self._key_for(image_path, expected_timeframe)
+        key = self._key_for(image_path, expected_timeframe, pair=pair)
         cache_path = self.root / f"{key}.json"
         payload = result.model_dump()
         payload["cache_hit"] = False

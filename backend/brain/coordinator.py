@@ -87,13 +87,17 @@ class AIBrain:
         chart_4h: Path,
         chart_1h: Path,
         chart_15m: Path,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
         persist: bool = True,
     ) -> TradeDecision:
         """
         Coordinate engines → BrainRecommendation → TradeDecision.
 
         Charts are passed only to Vision/Cognitive pipeline; the Brain
-        itself reasons solely over validated outputs.
+        itself reasons solely over validated outputs. Pair and timeframes
+        come from the user — never from screenshot text.
         """
         # 1. Gather validated engine outputs (orchestration only)
         markets, report, cognitive = self.pipeline.reason_multi(
@@ -101,6 +105,9 @@ class AIBrain:
             chart_1h=chart_1h,
             chart_15m=chart_15m,
             pair=pair,
+            timeframe_htf=timeframe_htf,
+            timeframe_mtf=timeframe_mtf,
+            timeframe_ltf=timeframe_ltf,
         )
         # Build provisional TradeDecision from cognitive (chart analysis — not Brain invention)
         provisional = self.pipeline._to_trade_decision(cognitive, markets, report)  # noqa: SLF001
@@ -549,6 +556,9 @@ class AIBrain:
         chart_4h: Path,
         chart_1h: Path,
         chart_15m: Path,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
         persist: bool = False,
     ) -> tuple[TradeDecision, BrainRecommendation]:
         """Return TradeDecision plus full BrainRecommendation (for API / tests)."""
@@ -558,6 +568,9 @@ class AIBrain:
             chart_4h=chart_4h,
             chart_1h=chart_1h,
             chart_15m=chart_15m,
+            timeframe_htf=timeframe_htf,
+            timeframe_mtf=timeframe_mtf,
+            timeframe_ltf=timeframe_ltf,
             persist=persist,
         )
         # Reconstruct a lightweight BrainRecommendation from decision + last trace file if needed.

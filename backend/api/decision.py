@@ -22,22 +22,34 @@ log = get_logger("api.decision")
 
 @router.post("/decide", response_model=TradeDecision)
 async def decide_trade(
-    chart_4h: UploadFile = File(..., description="4H chart image"),
-    chart_1h: UploadFile = File(..., description="1H chart image"),
-    chart_15m: UploadFile = File(..., description="15M chart image"),
-    pair: str = Form(default="UNKNOWN"),
+    chart_4h: UploadFile = File(..., description="Higher timeframe chart image"),
+    chart_1h: UploadFile = File(..., description="Middle timeframe chart image"),
+    chart_15m: UploadFile = File(..., description="Entry timeframe chart image"),
+    pair: str = Form(default="EURUSD"),
+    timeframe_htf: str = Form(default="4H"),
+    timeframe_mtf: str = Form(default="1H"),
+    timeframe_ltf: str = Form(default="15M"),
     analysis_service: AnalysisService = Depends(get_analysis_service),
 ) -> TradeDecision:
     """Top-down SMC decision engine with memory-adjusted confidence."""
     saved_4h = await save_upload(chart_4h, "4h")
     saved_1h = await save_upload(chart_1h, "1h")
     saved_15m = await save_upload(chart_15m, "15m")
-    log.info("decide request pair=%s", pair)
+    log.info(
+        "decide request pair=%s htf=%s mtf=%s ltf=%s",
+        pair,
+        timeframe_htf,
+        timeframe_mtf,
+        timeframe_ltf,
+    )
     return analysis_service.decide(
         pair=pair,
         chart_4h=saved_4h,
         chart_1h=saved_1h,
         chart_15m=saved_15m,
+        timeframe_htf=timeframe_htf,
+        timeframe_mtf=timeframe_mtf,
+        timeframe_ltf=timeframe_ltf,
         persist=True,
     )
 

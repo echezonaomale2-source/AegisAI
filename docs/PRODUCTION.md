@@ -11,16 +11,11 @@ AegisAI — personal production checklist
 - Backend `.env` created from `.env.example` (gitignored)
 - CI workflow: `.github/workflows/backend-tests.yml`
 - Smoke script: `backend/scripts/smoke_health.py`
+- Manual pair + timeframe selection (no OCR / Tesseract)
 
 ## Required from you
 
-### 1. Install Tesseract OCR (recommended)
-Not found on PATH on this machine. Improves pair/timeframe reading from screenshots.
-
-- Windows: install from https://github.com/UB-Mannheim/tesseract/wiki
-- Ensure `tesseract.exe` is on PATH, then restart the terminal / API.
-
-### 2. Start the stack and connect the app
+### 1. Start the stack and connect the app
 ```powershell
 cd backend
 .\.venv\Scripts\Activate.ps1
@@ -34,11 +29,17 @@ npx expo start
 In the app **Settings**, set API URL to your PC LAN IP, e.g. `http://192.168.x.x:8000`
 (not `localhost` from a physical phone).
 
-### 3. Run one real trade loop
-Upload real 4H / 1H / 15M charts → review recommendation → submit TP or SL outcome →
-confirm Insights + Memory update. Architecture tests cannot replace this.
+### 2. Run one real trade loop
+1. Select trading pair
+2. Select Higher / Middle / Entry timeframes (defaults: 4H / 1H / 15M)
+3. Upload matching charts
+4. Press **Analyze**
+5. Review recommendation → submit WIN / LOSS / BREAKEVEN (TP / SL / BE) outcome
+6. Confirm Insights + Memory update
 
-### 4. Build your labeled dataset (quality loop)
+Architecture tests cannot replace this.
+
+### 3. Build your labeled dataset (quality loop)
 ```powershell
 cd backend
 python -m dataset import "C:\path\to\screenshots" --version v1
@@ -48,7 +49,7 @@ python -m dataset compare --version v1
 ```
 Never invent labels; leave unlabeled until you annotate.
 
-### 5. Back up secrets and storage
+### 4. Back up secrets and storage
 Periodically copy (offline drive / encrypted backup):
 
 - `backend/storage/.encryption_key`  **critical — without it encrypted data is unreadable**
@@ -56,8 +57,8 @@ Periodically copy (offline drive / encrypted backup):
 - `backend/storage/trades/`
 - `backend/storage/cognitive_archive/`
 
-### 6. Optional later
+### 5. Optional later
 - Live market data provider (default is screenshot-only)
 - YOLO / GPU vision (not required for personal v1)
 - Expo production build (`eas build`) for installable APK/IPA
-- Push git remote if you want cloud backup of **code** (never commit `.encryption_key` / `.env`)
+- Git remote is already connected for **code** backup (never commit `.encryption_key` / `.env`)

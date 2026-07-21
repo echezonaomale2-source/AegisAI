@@ -24,10 +24,45 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
+const TIMEFRAME_OPTIONS = ['1M', '5M', '15M', '30M', '1H', '4H', '1D', '1W'] as const;
+
+function TimeframePicker({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <View style={styles.tfBlock}>
+      <Text style={styles.tfLabel}>{label}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tfRow}>
+        {TIMEFRAME_OPTIONS.map((option) => {
+          const selected = option === value;
+          return (
+            <Pressable
+              key={`${label}-${option}`}
+              onPress={() => onChange(option)}
+              style={[styles.tfChip, selected && styles.tfChipSelected]}
+            >
+              <Text style={[styles.tfChipText, selected && styles.tfChipTextSelected]}>{option}</Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
 export function HomeScreen({ navigation }: Props) {
   const { uploads, pickImage, allUploaded } = useChartUploads();
   const [pair, setPair] = useState('EURUSD');
   const [editingPair, setEditingPair] = useState(false);
+  const [timeframeHtf, setTimeframeHtf] = useState('4H');
+  const [timeframeMtf, setTimeframeMtf] = useState('1H');
+  const [timeframeLtf, setTimeframeLtf] = useState('15M');
 
   const onAnalyze = () => {
     if (!uploads.chart4h || !uploads.chart1h || !uploads.chart15m) {
@@ -38,7 +73,10 @@ export function HomeScreen({ navigation }: Props) {
       chart4hUri: uploads.chart4h,
       chart1hUri: uploads.chart1h,
       chart15mUri: uploads.chart15m,
-      pair: pair.trim() || 'UNKNOWN',
+      pair: pair.trim() || 'EURUSD',
+      timeframeHtf,
+      timeframeMtf,
+      timeframeLtf,
     });
   };
 
@@ -80,26 +118,37 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
+        <View style={styles.selectionCard}>
+          <Text style={styles.sectionTitle}>Timeframes</Text>
+          <Text style={styles.sectionHint}>
+            Select pair and timeframes first. Charts are analyzed with these labels only — nothing
+            is read from the image text.
+          </Text>
+          <TimeframePicker label="Higher timeframe" value={timeframeHtf} onChange={setTimeframeHtf} />
+          <TimeframePicker label="Middle timeframe" value={timeframeMtf} onChange={setTimeframeMtf} />
+          <TimeframePicker label="Entry timeframe" value={timeframeLtf} onChange={setTimeframeLtf} />
+        </View>
+
         <ChartUploadCard
-          title="Higher Timeframe (4H)"
-          subtitle="Market structure & bias"
-          uploadLabel="Upload 4H Chart"
+          title={`Higher Timeframe (${timeframeHtf})`}
+          subtitle="Trend, liquidity, premium/discount, OB, BOS, CHOCH, FVG"
+          uploadLabel={`Upload ${timeframeHtf} Chart`}
           imageUri={uploads.chart4h}
           onChoose={() => void pickImage('chart4h')}
           onReplace={() => void pickImage('chart4h')}
         />
         <ChartUploadCard
-          title="Middle Timeframe (1H)"
-          subtitle="Confirmation & liquidity"
-          uploadLabel="Upload 1H Chart"
+          title={`Middle Timeframe (${timeframeMtf})`}
+          subtitle="HTF alignment, internal structure, mitigation, entry zone"
+          uploadLabel={`Upload ${timeframeMtf} Chart`}
           imageUri={uploads.chart1h}
           onChoose={() => void pickImage('chart1h')}
           onReplace={() => void pickImage('chart1h')}
         />
         <ChartUploadCard
-          title="Lower Timeframe (15M)"
-          subtitle="Entry refinement"
-          uploadLabel="Upload 15M Chart"
+          title={`Entry Timeframe (${timeframeLtf})`}
+          subtitle="Sweep, trigger, confirmation, precise SL / TP"
+          uploadLabel={`Upload ${timeframeLtf} Chart`}
           imageUri={uploads.chart15m}
           onChoose={() => void pickImage('chart15m')}
           onReplace={() => void pickImage('chart15m')}
@@ -108,13 +157,13 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.tipBox}>
           <Ionicons name="bulb-outline" size={18} color={colors.success} />
           <Text style={styles.tipText}>
-            Use clear, full-chart screenshots. Crop out menus when possible for better vision
-            accuracy.
+            Use clear, full-chart screenshots that match the selected timeframes. Pair and TF come
+            from your selection above.
           </Text>
         </View>
 
         <GradientButton
-          label="Analyze Charts"
+          label="Analyze"
           onPress={onAnalyze}
           disabled={!allUploaded}
           style={styles.cta}
@@ -202,6 +251,58 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: fonts.bodyBold,
     fontSize: 13,
+  },
+  selectionCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.surfaceBorder,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
+  },
+  sectionTitle: {
+    color: colors.text,
+    fontFamily: fonts.displayMedium,
+    fontSize: 16,
+  },
+  sectionHint: {
+    color: colors.textSecondary,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  tfBlock: {
+    gap: 8,
+  },
+  tfLabel: {
+    color: colors.textSecondary,
+    fontFamily: fonts.bodyBold,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  tfRow: {
+    gap: 8,
+  },
+  tfChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.background,
+  },
+  tfChipSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryDim,
+  },
+  tfChipText: {
+    color: colors.textSecondary,
+    fontFamily: fonts.bodyBold,
+    fontSize: 13,
+  },
+  tfChipTextSelected: {
+    color: colors.primary,
   },
   tipBox: {
     flexDirection: 'row',

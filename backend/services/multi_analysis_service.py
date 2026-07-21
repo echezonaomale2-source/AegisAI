@@ -17,10 +17,21 @@ class MultiChartAnalysisService:
         chart_4h: str | Path,
         chart_1h: str | Path,
         chart_15m: str | Path,
+        *,
+        pair: str | None = None,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
     ) -> MultiChartAnalysis:
-        result_4h = self.single.analyze(chart_4h, expected_timeframe="4H")
-        result_1h = self.single.analyze(chart_1h, expected_timeframe="1H")
-        result_15m = self.single.analyze(chart_15m, expected_timeframe="15M")
+        result_4h = self.single.analyze(
+            chart_4h, expected_timeframe=timeframe_htf, pair=pair
+        )
+        result_1h = self.single.analyze(
+            chart_1h, expected_timeframe=timeframe_mtf, pair=pair
+        )
+        result_15m = self.single.analyze(
+            chart_15m, expected_timeframe=timeframe_ltf, pair=pair
+        )
 
         statuses = [result_4h.status, result_1h.status, result_15m.status]
         if all(s == "ok" for s in statuses):
@@ -36,7 +47,8 @@ class MultiChartAnalysisService:
             chart_1h=result_1h,
             chart_15m=result_15m,
             notes=[
-                "Phase 5.5: each chart reconstructed independently into ChartModel.",
+                "Each chart reconstructed independently into ChartModel.",
+                "Pair and timeframes are user-selected (no OCR).",
                 "Decision Engine consumes reconstructed models top-down (never raw images).",
             ],
         )

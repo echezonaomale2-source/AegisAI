@@ -18,7 +18,10 @@ async def brain_recommend(
     chart_4h: UploadFile = File(...),
     chart_1h: UploadFile = File(...),
     chart_15m: UploadFile = File(...),
-    pair: str = Form(default="UNKNOWN"),
+    pair: str = Form(default="EURUSD"),
+    timeframe_htf: str = Form(default="4H"),
+    timeframe_mtf: str = Form(default="1H"),
+    timeframe_ltf: str = Form(default="15M"),
     persist: bool = Form(default=False),
     brain: AIBrain = Depends(get_brain),
 ) -> dict:
@@ -26,16 +29,27 @@ async def brain_recommend(
     Single entry point for trading recommendations via the AI Brain.
 
     Returns TradeDecision fields plus BrainRecommendation (trace, historical support).
+    Pair and timeframes are user-selected — never read from screenshots.
     """
     p4 = await save_upload(chart_4h, "4h")
     p1 = await save_upload(chart_1h, "1h")
     p15 = await save_upload(chart_15m, "15m")
-    log.info("brain recommend pair=%s persist=%s", pair, persist)
+    log.info(
+        "brain recommend pair=%s htf=%s mtf=%s ltf=%s persist=%s",
+        pair,
+        timeframe_htf,
+        timeframe_mtf,
+        timeframe_ltf,
+        persist,
+    )
     decision, recommendation = brain.recommend_detailed(
         pair=pair,
         chart_4h=p4,
         chart_1h=p1,
         chart_15m=p15,
+        timeframe_htf=timeframe_htf,
+        timeframe_mtf=timeframe_mtf,
+        timeframe_ltf=timeframe_ltf,
         persist=persist,
     )
     return {

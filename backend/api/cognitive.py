@@ -48,12 +48,16 @@ async def cognitive_reason(
     chart_4h: UploadFile = File(...),
     chart_1h: UploadFile = File(...),
     chart_15m: UploadFile = File(...),
-    pair: str = Form(default="UNKNOWN"),
+    pair: str = Form(default="EURUSD"),
+    timeframe_htf: str = Form(default="4H"),
+    timeframe_mtf: str = Form(default="1H"),
+    timeframe_ltf: str = Form(default="15M"),
 ) -> dict:
     """
     Full cognitive pass: MarketModel → Evidence → ReasoningReport → Decision.
 
     Does not persist. Returns explainable scores and trace.
+    Pair and timeframes are user-selected — never read from screenshots.
     """
     p4 = await save_upload(chart_4h, "4h")
     p1 = await save_upload(chart_1h, "1h")
@@ -63,6 +67,9 @@ async def cognitive_reason(
         chart_1h=p1,
         chart_15m=p15,
         pair=pair,
+        timeframe_htf=timeframe_htf,
+        timeframe_mtf=timeframe_mtf,
+        timeframe_ltf=timeframe_ltf,
     )
     return {
         "pair": decision.pair,

@@ -70,7 +70,7 @@ class ServiceContainer:
     @property
     def learning(self) -> LearningService:
         if self._learning is None:
-            self._learning = LearningService(memory=self.memory)
+            self._learning = LearningService()
         return self._learning
 
     @property

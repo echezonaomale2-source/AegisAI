@@ -24,6 +24,9 @@ async function fetchWithTimeout(
 
 export interface AnalyzeChartsPayload {
   pair?: string;
+  timeframeHtf?: string;
+  timeframeMtf?: string;
+  timeframeLtf?: string;
   chart4hUri: string;
   chart1hUri: string;
   chart15mUri: string;
@@ -87,7 +90,10 @@ export async function healthCheck(): Promise<{ ok: boolean; version?: string; de
 
 export async function analyzeCharts(payload: AnalyzeChartsPayload): Promise<AnalysisResult> {
   const formData = new FormData();
-  formData.append('pair', payload.pair ?? 'UNKNOWN');
+  formData.append('pair', payload.pair ?? 'EURUSD');
+  formData.append('timeframe_htf', payload.timeframeHtf ?? '4H');
+  formData.append('timeframe_mtf', payload.timeframeMtf ?? '1H');
+  formData.append('timeframe_ltf', payload.timeframeLtf ?? '15M');
   formData.append('chart_4h', {
     uri: payload.chart4hUri,
     name: 'chart_4h.jpg',

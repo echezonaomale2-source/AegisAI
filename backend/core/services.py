@@ -64,9 +64,13 @@ class ChartService:
     def __init__(self, vision: VisionEngine | None = None) -> None:
         self._vision = vision or VisionEngine(use_cache=True)
 
-    def extract(self, path: str | Path, *, expected_timeframe: str | None = None) -> ExtractedChart:
+    def extract(
+        self, path: str | Path, *, expected_timeframe: str | None = None, pair: str | None = None
+    ) -> ExtractedChart:
         # Extraction is performed inside reconstruction; expose metadata-only result.
-        result = self._vision.analyze_chart(path, expected_timeframe=expected_timeframe)
+        result = self._vision.analyze_chart(
+            path, expected_timeframe=expected_timeframe, pair=pair
+        )
         ok = result.status == "ok"
         return ExtractedChart(
             ok=ok,
@@ -100,15 +104,20 @@ class VisionService:
         path: str | Path,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
     ) -> ChartModel:
         salt = expected_timeframe or ""
+        if pair:
+            salt = f"{salt}|{pair}"
         if self._cache:
             cached = self._cache.get(path, "chart_model", ChartModel, salt=salt)
             if cached is not None:
                 cached.cache_hit = True
                 return cached
 
-        model = self._reconstructor.reconstruct(path, expected_timeframe=expected_timeframe)
+        model = self._reconstructor.reconstruct(
+            path, expected_timeframe=expected_timeframe, pair=pair
+        )
         if self._cache and model.status == "ok":
             self._cache.put(path, "chart_model", model, salt=salt)
         return model
@@ -118,10 +127,11 @@ class VisionService:
         path: str | Path,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
     ) -> VisionChartResult:
         """Escape hatch for Phase 5 API — still available, not used by decision path."""
         return self._reconstructor._vision.analyze_chart(  # noqa: SLF001
-            path, expected_timeframe=expected_timeframe
+            path, expected_timeframe=expected_timeframe, pair=pair
         )
 
 

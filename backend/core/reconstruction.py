@@ -42,8 +42,11 @@ class ChartReconstructor:
         path: str | Path,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
     ) -> ChartModel:
-        result = self._vision.analyze_chart(path, expected_timeframe=expected_timeframe)
+        result = self._vision.analyze_chart(
+            path, expected_timeframe=expected_timeframe, pair=pair
+        )
         model = self.from_vision_result(result)
         log.info(
             "reconstructed chart path=%s status=%s candles=%d quality=%.1f",

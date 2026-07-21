@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from cv.models import ChartMeta
-from vision.chart_parser import parse_chart_labels
+from vision.chart_parser import apply_manual_labels
 from vision.chart_roi import detect_chart_roi
 
 
@@ -27,12 +27,13 @@ class ChartExtractor:
         gray: np.ndarray,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
     ) -> ChartExtraction:
-        labels = parse_chart_labels(original_bgr, expected_timeframe=expected_timeframe)
+        labels = apply_manual_labels(pair=pair, expected_timeframe=expected_timeframe)
         roi = detect_chart_roi(enhanced_bgr, gray)
 
         # Chart-relative scale calibrated to the extracted ROI height.
-        # Absolute broker prices remain Unknown without axis OCR — never invent them.
+        # Absolute broker prices remain Unknown without a price axis — never invent them.
         h = max(int(roi.height), 1)
         price_scale = {
             "axis_min": 0.0,

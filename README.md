@@ -46,7 +46,7 @@ AIE/
     ├── decision/      # Phase 3: decision / confidence / risk / explanation
     ├── cv/            # Phase 5: vision engine / detectors / graph / cache / testing
     ├── memory/        # Phase 4/4.5: review / patterns / learning / lessons
-    ├── vision/        # preprocess, ROI, candles, OCR labels
+    ├── vision/        # preprocess, ROI, candles (manual pair/TF labels)
     ├── ml/            # structure, liquidity, OB/FVG, zones
     ├── storage/       # uploads + persisted trade decisions
     ├── tests/
@@ -55,7 +55,10 @@ AIE/
 
 ## App flow
 
-Splash → Home (upload 4H / 1H / 15M) → Analyzing → Results → History → Trade Details → Upload Outcome
+Splash → Home (select pair + TFs → upload HTF / MTF / Entry charts → Analyze)
+→ Analyzing → Results → History → Trade Details → Upload Outcome
+
+Pair and timeframes are **user-selected**. The AI never reads symbol or TF text from screenshots.
 
 ## Run the backend
 
@@ -67,10 +70,10 @@ pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Optional (improves pair/timeframe reading): install [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) and ensure it is on PATH.
-
 API docs: http://127.0.0.1:8000/docs  
 Health: http://127.0.0.1:8000/api/health
+
+**No OCR / Tesseract.** Install only Python deps from `requirements.txt`.
 
 ### Endpoints
 

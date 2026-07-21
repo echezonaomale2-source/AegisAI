@@ -35,6 +35,7 @@ class CognitiveVisionEngine:
         path: str | Path,
         *,
         expected_timeframe: str | None = None,
+        pair: str | None = None,
     ) -> ChartModel:
         quality = self._images.validate(path)
         if not quality.ok:
@@ -49,7 +50,9 @@ class CognitiveVisionEngine:
                 self._bus.publish(EVT_VISION_DONE, {"status": "error", "path": str(path)})
             return model
 
-        model = self._reconstructor.reconstruct(path, expected_timeframe=expected_timeframe)
+        model = self._reconstructor.reconstruct(
+            path, expected_timeframe=expected_timeframe, pair=pair
+        )
         log.info(
             "vision done path=%s status=%s quality=%.1f candles=%d",
             path,

@@ -19,6 +19,9 @@ export type RootStackParamList = {
     chart1hUri: string;
     chart15mUri: string;
     pair?: string;
+    timeframeHtf?: string;
+    timeframeMtf?: string;
+    timeframeLtf?: string;
   };
   Results: {
     tradeId: string;

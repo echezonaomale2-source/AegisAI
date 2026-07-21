@@ -22,6 +22,7 @@ from knowledge.versioning import CURRENT_VERSION
 from models.chart_schemas import ChartAnalysis, MultiChartAnalysis
 from models.decision_schemas import ConfidenceScorecard, TradeDecision
 from models.schemas import utc_now_iso
+from vision.chart_parser import normalize_pair, normalize_timeframe
 
 log = get_logger("cognitive.pipeline")
 
@@ -40,8 +41,11 @@ class CognitivePipeline:
         path: Path | str,
         *,
         expected_timeframe: str,
+        pair: str | None = None,
     ) -> tuple[MarketModel, Evidence]:
-        chart = self.c.vision.process(path, expected_timeframe=expected_timeframe)
+        chart = self.c.vision.process(
+            path, expected_timeframe=expected_timeframe, pair=pair
+        )
         market = self.c.reconstruction.rebuild(chart)
         features = self.c.features.extract(market)
         # Phase 8: Knowledge Engine validates before Evidence consumes features.
@@ -61,21 +65,29 @@ class CognitivePipeline:
         chart_1h: Path,
         chart_15m: Path,
         pair: str = "Unknown",
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
         historical_bias: float = 0.0,
     ) -> tuple[dict[str, MarketModel], ReasoningReport, CognitiveDecision]:
-        m4, e4 = self.process_timeframe(chart_4h, expected_timeframe="4H")
-        m1, e1 = self.process_timeframe(chart_1h, expected_timeframe="1H")
-        m15, e15 = self.process_timeframe(chart_15m, expected_timeframe="15M")
+        resolved_pair = normalize_pair(pair)
+        htf = normalize_timeframe(timeframe_htf, default="4H")
+        mtf = normalize_timeframe(timeframe_mtf, default="1H")
+        ltf = normalize_timeframe(timeframe_ltf, default="15M")
 
+        m4, e4 = self.process_timeframe(
+            chart_4h, expected_timeframe=htf, pair=resolved_pair
+        )
+        m1, e1 = self.process_timeframe(
+            chart_1h, expected_timeframe=mtf, pair=resolved_pair
+        )
+        m15, e15 = self.process_timeframe(
+            chart_15m, expected_timeframe=ltf, pair=resolved_pair
+        )
+
+        # Slot keys remain HTF/MTF/LTF roles for downstream engines.
         markets = {"4H": m4, "1H": m1, "15M": m15}
         evidence_by_tf = {"4H": e4, "1H": e1, "15M": e15}
-
-        resolved_pair = pair
-        if resolved_pair == "Unknown":
-            for m in (m4, m1, m15):
-                if m.pair and m.pair != "Unknown":
-                    resolved_pair = m.pair
-                    break
 
         report = self.c.reasoning.reason(
             evidence_by_tf,
@@ -84,6 +96,7 @@ class CognitivePipeline:
         )
         risk = self.c.risk.assess(report, markets)
         decision = self.c.decision.decide(report, risk, pair=resolved_pair)
+        self._last_timeframes = {"HTF": htf, "MTF": mtf, "LTF": ltf}
         return markets, report, decision
 
     def decide(
@@ -93,6 +106,9 @@ class CognitivePipeline:
         chart_4h: Path,
         chart_1h: Path,
         chart_15m: Path,
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
         persist: bool = True,
     ) -> TradeDecision:
         markets, report, cognitive = self.reason_multi(
@@ -100,6 +116,9 @@ class CognitivePipeline:
             chart_1h=chart_1h,
             chart_15m=chart_15m,
             pair=pair,
+            timeframe_htf=timeframe_htf,
+            timeframe_mtf=timeframe_mtf,
+            timeframe_ltf=timeframe_ltf,
         )
 
         legacy = self._to_trade_decision(cognitive, markets, report)
@@ -171,11 +190,20 @@ class CognitivePipeline:
         chart_4h: Path,
         chart_1h: Path,
         chart_15m: Path,
+        *,
+        pair: str = "Unknown",
+        timeframe_htf: str = "4H",
+        timeframe_mtf: str = "1H",
+        timeframe_ltf: str = "15M",
     ) -> MultiChartAnalysis:
         markets, _, _ = self.reason_multi(
             chart_4h=chart_4h,
             chart_1h=chart_1h,
             chart_15m=chart_15m,
+            pair=pair,
+            timeframe_htf=timeframe_htf,
+            timeframe_mtf=timeframe_mtf,
+            timeframe_ltf=timeframe_ltf,
         )
         a4 = self._market_to_analysis(markets["4H"])
         a1 = self._market_to_analysis(markets["1H"])
@@ -281,7 +309,11 @@ class CognitivePipeline:
 
         return TradeDecision(
             pair=cognitive.pair,
-            timeframes={"4H": "4H", "1H": "1H", "15M": "15M"},
+            timeframes=getattr(
+                self,
+                "_last_timeframes",
+                {"HTF": "4H", "MTF": "1H", "LTF": "15M"},
+            ),
             analysis_4h=a4,
             analysis_1h=a1,
             analysis_15m=a15,
